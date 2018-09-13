@@ -12,13 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-/**
- * 重写认证失败处理。
- * 1.   不需要创建 session
- * 2.   提示认证失败信息
- */
 @Component
-public class AuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
+public class AuthenticationFaildHandler extends SimpleUrlAuthenticationFailureHandler {
 
     /**
      * 无法理解认证失败时 SimpleUrlAuthenticationFailureHandler 同样创建了 session。这里重写了规则，不创建session
