@@ -1,7 +1,6 @@
 package cn.wzvtc.dmtbs.config;
 
 import cn.wzvtc.dmtbs.config.authentication.AuthenticationSuccessHandler;
-import cn.wzvtc.dmtbs.config.authentication.MyPasswordEncoder;
 import cn.wzvtc.dmtbs.config.authentication.RestAuthenticationEntryPoint;
 import cn.wzvtc.dmtbs.config.authentication.SimpleLogoutHandler;
 import cn.wzvtc.dmtbs.service.UserAuthService;
@@ -12,6 +11,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -41,8 +41,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private SimpleLogoutHandler simpleLogoutHandler;
 
-    @Autowired
-    private MyPasswordEncoder passwordEncoder;
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -52,12 +55,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling()
                 .authenticationEntryPoint(restAuthenticationEntryPoint)
                 .and().authorizeRequests()
-                .antMatchers("/public/**", "/wechat/**", "/images/**", "/pay/notify").permitAll()
+                .antMatchers("/public/**").permitAll()
                 .antMatchers("/**").authenticated()
-                .and().formLogin().loginPage("/public/users/login")
+                .and()
+                .formLogin()
+                .loginPage("/public/users/login")
                 .successHandler(authenticationSuccessHandler)
                 .failureHandler(authenticationFailureHandler)
-                .and().logout().logoutSuccessHandler(simpleLogoutHandler);
+                .and()
+                .sessionManagement().maximumSessions(1).and()
+                .and()
+                .logout()
+                .logoutSuccessHandler(simpleLogoutHandler);
     }
 
     @Bean
@@ -78,6 +87,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userAuthService)
-                .passwordEncoder(passwordEncoder);
+                .passwordEncoder(passwordEncoder());
     }
 }
